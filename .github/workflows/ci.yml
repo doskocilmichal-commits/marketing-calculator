@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # One source of truth for the Node version — same file nvm reads.
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        # `ci` not `install`: installs exactly what package-lock.json pins, so a
+        # dependency cannot quietly change between your machine and this run.
+        run: npm ci
+
+      # Catches unused variables, bad imports, accidental `any`.
+      - name: Lint
+        run: npm run lint
+
+      # Catches type errors. `next build` does this too, but running it first
+      # means a type error fails in seconds instead of after a full build.
+      - name: Typecheck
+        run: npm run typecheck
+
+      # The config is .mts, not .ts — a guard written for the wrong extension
+      # would skip this step silently and still show a green tick.
+      - name: Test
+        run: npm test
+
+      # Last, because it is the slowest. No API key needed: GEMINI_API_KEY is
+      # only read at request time, never during the build.
+      - name: Build
+        run: npm run build
