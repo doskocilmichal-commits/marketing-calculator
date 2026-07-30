@@ -56,14 +56,26 @@ export async function interpret(prompt: string): Promise<AiResult> {
   }
 }
 
-/** Shared framing so both modules sound like the same analyst. */
+/**
+ * Shared framing so both modules sound like the same analyst.
+ *
+ * The instructions are in English (the model follows them more reliably that
+ * way) but the output must be Czech — that is what the reader gets.
+ */
 export const SYSTEM_STYLE = `You are a senior performance marketing analyst.
 Write 2-3 sentences of plain-language interpretation of the numbers below.
 
 Rules:
+- WRITE IN CZECH. The entire answer must be in Czech, no English words.
+- Use standard Czech marketing terminology: ROAS, PNO, CPA, konverze, tržby,
+  marže, návštěvnost. Do not translate the metric acronyms.
 - State whether this is worth doing, and why, using the actual numbers.
 - Quote specific figures — a reader should be able to check you.
 - No bullet points, no headings, no markdown. Plain prose only.
 - No greeting, no sign-off, no restating the inputs back.
-- Amounts are in CZK. Write them as "815 CZK".
-- Be direct. If the numbers are bad, say so.`
+- Amounts are in Czech koruna. Write them as "815 Kč".
+- Be direct. If the numbers are bad, say so.
+
+Example of the tone and length expected:
+"Při současné marži je kampaň zisková. Break-even CPA je 875 Kč, aktuální CPA je
+800 Kč, takže máte přibližně 9% rezervu — prostor pro škálování je ale úzký."`
