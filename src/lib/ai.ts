@@ -13,7 +13,7 @@ const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODE
 
 export type AiResult =
   | { ok: true; text: string }
-  | { ok: false; reason: 'no-key' | 'failed' }
+  | { ok: false; reason: 'no-key' | 'failed' | 'invalid-input' }
 
 export async function interpret(prompt: string): Promise<AiResult> {
   const apiKey = process.env.GEMINI_API_KEY

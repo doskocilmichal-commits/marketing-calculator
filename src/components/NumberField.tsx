@@ -12,6 +12,8 @@ type Props = {
   min?: string
   max?: string
   required?: boolean
+  /** Shown in place of the hint when the value can't be used. */
+  error?: string
 }
 
 export function NumberField({
@@ -25,6 +27,7 @@ export function NumberField({
   min,
   max,
   required,
+  error,
 }: Props) {
   return (
     <label className="block">
@@ -43,11 +46,15 @@ export function NumberField({
           step={step}
           min={min}
           max={max}
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 tabular-nums
+          aria-invalid={error ? true : undefined}
+          className={`w-full rounded-lg border bg-white px-3 py-2 text-slate-900 tabular-nums
                      shadow-sm outline-none transition
                      placeholder:text-slate-400
-                     focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20
-                     dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-600"
+                     dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-600 ${
+                       error
+                         ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 dark:border-rose-700'
+                         : 'border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700'
+                     }`}
           style={suffix ? { paddingRight: `${suffix.length * 0.65 + 1.5}rem` } : undefined}
         />
         {suffix && (
@@ -57,7 +64,11 @@ export function NumberField({
         )}
       </div>
 
-      {hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>}
+      {error ? (
+        <span className="mt-1 block text-xs text-rose-600 dark:text-rose-400">{error}</span>
+      ) : (
+        hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>
+      )}
     </label>
   )
 }

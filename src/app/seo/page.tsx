@@ -7,15 +7,8 @@ import { AiInterpretation } from '@/components/AiInterpretation'
 import { calculateSeo } from '@/lib/calc'
 import { ctrForPosition, MAX_POSITION, MIN_POSITION } from '@/lib/ctr-model'
 import { formatCurrency, formatNumber, formatPercent } from '@/lib/format'
+import { fieldError, parseAmount, parseRate } from '@/lib/inputs'
 import { interpretSeo } from '../actions'
-
-function num(value: string): number {
-  return value.trim() === '' ? NaN : Number(value)
-}
-
-function pct(value: string): number {
-  return num(value) / 100
-}
 
 /** 0.055 → "5.5", so the model value lands in the field the way a person writes it. */
 function ctrToField(position: number): string {
@@ -85,15 +78,25 @@ export default function SeoPage() {
   }
 
   const inputs = {
-    searchVolume: num(searchVolume),
+    searchVolume: parseAmount(searchVolume),
     currentPosition,
     targetPosition,
-    currentCtr: pct(currentCtr),
-    targetCtr: pct(targetCtr),
-    conversionRate: pct(conversionRate),
-    aov: num(aov),
-    margin: pct(margin),
-    investment: investment.trim() === '' ? null : num(investment),
+    currentCtr: parseRate(currentCtr),
+    targetCtr: parseRate(targetCtr),
+    conversionRate: parseRate(conversionRate),
+    aov: parseAmount(aov),
+    margin: parseRate(margin),
+    investment: investment.trim() === '' ? null : parseAmount(investment),
+  }
+
+  const errors = {
+    searchVolume: fieldError(searchVolume, inputs.searchVolume, 'amount'),
+    currentCtr: fieldError(currentCtr, inputs.currentCtr, 'rate'),
+    targetCtr: fieldError(targetCtr, inputs.targetCtr, 'rate'),
+    conversionRate: fieldError(conversionRate, inputs.conversionRate, 'rate'),
+    aov: fieldError(aov, inputs.aov, 'amount'),
+    margin: fieldError(margin, inputs.margin, 'rate'),
+    investment: fieldError(investment, inputs.investment ?? NaN, 'amount'),
   }
 
   const r = calculateSeo(inputs)
@@ -119,6 +122,7 @@ export default function SeoPage() {
             suffix="/ mo"
             required
             min="0"
+            error={errors.searchVolume}
           />
 
           <div className="grid grid-cols-2 gap-3">
@@ -127,8 +131,24 @@ export default function SeoPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <NumberField label="CTR now" value={currentCtr} onChange={setCurrentCtr} suffix="%" min="0" />
-            <NumberField label="CTR target" value={targetCtr} onChange={setTargetCtr} suffix="%" min="0" />
+            <NumberField
+              label="CTR now"
+              value={currentCtr}
+              onChange={setCurrentCtr}
+              suffix="%"
+              min="0"
+              max="100"
+              error={errors.currentCtr}
+            />
+            <NumberField
+              label="CTR target"
+              value={targetCtr}
+              onChange={setTargetCtr}
+              suffix="%"
+              min="0"
+              max="100"
+              error={errors.targetCtr}
+            />
           </div>
           <p className="-mt-2 text-xs text-slate-500">
             Pre-filled from the position — conservative on purpose. Overwrite if you have your own data.
@@ -141,9 +161,28 @@ export default function SeoPage() {
             suffix="%"
             required
             min="0"
+            max="100"
+            error={errors.conversionRate}
           />
-          <NumberField label="Average order value" value={aov} onChange={setAov} suffix="CZK" required min="0" />
-          <NumberField label="Margin" value={margin} onChange={setMargin} suffix="%" required min="0" max="100" />
+          <NumberField
+            label="Average order value"
+            value={aov}
+            onChange={setAov}
+            suffix="CZK"
+            required
+            min="0"
+            error={errors.aov}
+          />
+          <NumberField
+            label="Margin"
+            value={margin}
+            onChange={setMargin}
+            suffix="%"
+            required
+            min="0"
+            max="100"
+            error={errors.margin}
+          />
           <NumberField
             label="Monthly SEO investment"
             value={investment}
@@ -152,6 +191,7 @@ export default function SeoPage() {
             min="0"
             placeholder="optional"
             hint="Fill this in and you get ROI."
+            error={errors.investment}
           />
         </div>
       </section>
