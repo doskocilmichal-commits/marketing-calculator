@@ -58,7 +58,9 @@ export function AiInterpretation({ onRequest, disabled }: Props) {
         <p className="mt-3 text-sm text-amber-700 dark:text-amber-400">
           {result.reason === 'no-key'
             ? 'No GEMINI_API_KEY found in .env.local — the numbers above are still correct, there is just no commentary.'
-            : 'The AI call failed. The numbers above are unaffected — try again.'}
+            : result.reason === 'invalid-input'
+              ? 'Some inputs are missing or out of range. Fix the fields marked in red and try again.'
+              : 'The AI call failed. The numbers above are unaffected — try again.'}
         </p>
       )}
     </section>

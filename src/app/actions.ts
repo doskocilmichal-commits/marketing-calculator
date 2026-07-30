@@ -1,16 +1,25 @@
 'use server'
 
 import { interpret, SYSTEM_STYLE, type AiResult } from '@/lib/ai'
-import { calculatePerformance, calculateSeo, type PerformanceInputs, type SeoInputs } from '@/lib/calc'
+import { calculatePerformance, calculateSeo } from '@/lib/calc'
 import { formatCurrency, formatNumber, formatPercent, formatRatio } from '@/lib/format'
+import { sanitizePerformance, sanitizeSeo } from '@/lib/sanitize'
 
 /**
- * The results are recomputed here rather than trusted from the client — the
- * client sends inputs only, so the AI can never be handed numbers that don't
- * match the formulas.
+ * Two guarantees here:
+ *
+ * 1. Every input is re-validated by `sanitize*` before it touches a prompt. The
+ *    argument arrives from the network as `unknown` no matter what the type says.
+ * 2. Results are recomputed from those inputs rather than trusted from the
+ *    client, so the AI can never be handed numbers that don't match the formulas.
  */
 
-export async function interpretPerformance(input: PerformanceInputs): Promise<AiResult> {
+const INVALID: AiResult = { ok: false, reason: 'invalid-input' }
+
+export async function interpretPerformance(raw: unknown): Promise<AiResult> {
+  const input = sanitizePerformance(raw)
+  if (!input) return INVALID
+
   const r = calculatePerformance(input)
 
   const prompt = `${SYSTEM_STYLE}
@@ -43,7 +52,10 @@ break-even CPA, then what to do about it.`
   return interpret(prompt)
 }
 
-export async function interpretSeo(input: SeoInputs): Promise<AiResult> {
+export async function interpretSeo(raw: unknown): Promise<AiResult> {
+  const input = sanitizeSeo(raw)
+  if (!input) return INVALID
+
   const r = calculateSeo(input)
 
   const investmentLine =

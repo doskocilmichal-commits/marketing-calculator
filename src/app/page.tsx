@@ -6,17 +6,8 @@ import { ResultCard } from '@/components/ResultCard'
 import { AiInterpretation } from '@/components/AiInterpretation'
 import { calculatePerformance } from '@/lib/calc'
 import { formatCurrency, formatNumber, formatPercent, formatRatio } from '@/lib/format'
+import { fieldError, parseAmount, parseRate } from '@/lib/inputs'
 import { interpretPerformance } from './actions'
-
-/** Empty string → NaN, so a blank field shows "—" instead of behaving like zero. */
-function num(value: string): number {
-  return value.trim() === '' ? NaN : Number(value)
-}
-
-/** Percentages are entered as 5, stored as 0.05. */
-function pct(value: string): number {
-  return num(value) / 100
-}
 
 export default function PerformancePage() {
   const [budget, setBudget] = useState('50000')
@@ -27,12 +18,22 @@ export default function PerformancePage() {
   const [margin, setMargin] = useState('35')
 
   const inputs = {
-    budget: num(budget),
-    cpc: num(cpc),
-    ctr: pct(ctr),
-    conversionRate: pct(conversionRate),
-    aov: num(aov),
-    margin: pct(margin),
+    budget: parseAmount(budget),
+    cpc: parseAmount(cpc),
+    ctr: parseRate(ctr),
+    conversionRate: parseRate(conversionRate),
+    aov: parseAmount(aov),
+    margin: parseRate(margin),
+  }
+
+  // A field the user typed into that can't be used. Empty is not an error.
+  const errors = {
+    budget: fieldError(budget, inputs.budget, 'amount'),
+    cpc: fieldError(cpc, inputs.cpc, 'amount'),
+    ctr: fieldError(ctr, inputs.ctr, 'rate'),
+    conversionRate: fieldError(conversionRate, inputs.conversionRate, 'rate'),
+    aov: fieldError(aov, inputs.aov, 'amount'),
+    margin: fieldError(margin, inputs.margin, 'rate'),
   }
 
   const r = calculatePerformance(inputs)
@@ -54,15 +55,33 @@ export default function PerformancePage() {
         </p>
 
         <div className="mt-4 space-y-4">
-          <NumberField label="Budget" value={budget} onChange={setBudget} suffix="CZK" required min="0" />
-          <NumberField label="CPC" value={cpc} onChange={setCpc} suffix="CZK" required min="0" />
+          <NumberField
+            label="Budget"
+            value={budget}
+            onChange={setBudget}
+            suffix="CZK"
+            required
+            min="0"
+            error={errors.budget}
+          />
+          <NumberField
+            label="CPC"
+            value={cpc}
+            onChange={setCpc}
+            suffix="CZK"
+            required
+            min="0"
+            error={errors.cpc}
+          />
           <NumberField
             label="CTR"
             value={ctr}
             onChange={setCtr}
             suffix="%"
             min="0"
+            max="100"
             hint="Only used to estimate impressions."
+            error={errors.ctr}
           />
           <NumberField
             label="Conversion rate"
@@ -71,8 +90,18 @@ export default function PerformancePage() {
             suffix="%"
             required
             min="0"
+            max="100"
+            error={errors.conversionRate}
           />
-          <NumberField label="Average order value" value={aov} onChange={setAov} suffix="CZK" required min="0" />
+          <NumberField
+            label="Average order value"
+            value={aov}
+            onChange={setAov}
+            suffix="CZK"
+            required
+            min="0"
+            error={errors.aov}
+          />
           <NumberField
             label="Margin"
             value={margin}
@@ -82,6 +111,7 @@ export default function PerformancePage() {
             min="0"
             max="100"
             hint="Break-even CPA, ROI and profit all depend on this."
+            error={errors.margin}
           />
         </div>
       </section>
