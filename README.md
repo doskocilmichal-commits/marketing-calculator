@@ -1,9 +1,32 @@
+# Marketing Decision Calculator
+
+Turns marketing inputs into business outcomes — revenue, profit, ROI — in
+seconds, with a short AI interpretation of what the numbers mean. Two modules:
+a Performance calculator for paid media and an SEO Opportunity calculator for
+ranking upside. Built for marketers, sales people and consultants who would
+otherwise reach for a spreadsheet.
+
+## Stack
+
+Next.js + TypeScript + Tailwind, data in `data/app.json`
+
+## Local development
+
+```bash
+npm install
+npm run dev
+```
+
+The AI interpretation needs `GEMINI_API_KEY` in `.env.local`. Without it the
+calculators still work — only the commentary is skipped.
+
+See [PRD.md](PRD.md) for the full brief, formulas and assumptions.
+
+---
+
 # App Vibe Kit — evisions
 
-A ready-made kit of skills for the **Vibe Coding: from idea to app** workshop.
-
-No code, no app — just skills and rules. You generate everything yourself from
-your own brief.
+Below is the workshop kit this project started from — kept as a reference.
 
 ## Quick start
 
